@@ -89,6 +89,7 @@ static int aeApiPoll(aeEventLoop *eventLoop, struct timeval *tvp) {
             aeFileEvent *fe = &eventLoop->events[j];
 
             if (fe->mask == AE_NONE) continue;
+            // FD_ISSET是否被激活
             if (fe->mask & AE_READABLE && FD_ISSET(j,&state->_rfds))
                 mask |= AE_READABLE;
             if (fe->mask & AE_WRITABLE && FD_ISSET(j,&state->_wfds))

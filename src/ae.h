@@ -69,6 +69,9 @@ typedef void aeEventFinalizerProc(struct aeEventLoop *eventLoop, void *clientDat
 typedef void aeBeforeSleepProc(struct aeEventLoop *eventLoop);
 
 /* File event structure */
+/**
+ * 用于处理 Redis 服务器和客户端之间的网络IO
+ */
 typedef struct aeFileEvent {
     int mask; /* one of AE_(READABLE|WRITABLE|BARRIER) */
     aeFileProc *rfileProc;
@@ -77,6 +80,9 @@ typedef struct aeFileEvent {
 } aeFileEvent;
 
 /* Time event structure */
+/**
+ * Redis 服务器中的一些操作（比如serverCron函数）需要在给定的时间点执行，而时间事件就是处理这类定时操作的
+ */
 typedef struct aeTimeEvent {
     long long id; /* time event identifier. */
     monotime when;
@@ -96,13 +102,17 @@ typedef struct aeFiredEvent {
 } aeFiredEvent;
 
 /* State of an event based program */
+/**
+ * 整个事件驱动的核心
+ */
 typedef struct aeEventLoop {
     int maxfd;   /* highest file descriptor currently registered */
     int setsize; /* max number of file descriptors tracked */
     long long timeEventNextId;
-    aeFileEvent *events; /* Registered events */
-    aeFiredEvent *fired; /* Fired events */
-    aeTimeEvent *timeEventHead;
+
+    aeFileEvent *events; /* Registered events 未就绪文件事件表*/
+    aeFiredEvent *fired; /* Fired events  就绪文件事件表*/
+    aeTimeEvent *timeEventHead; /* 时间事件列表 */
     int stop;
     void *apidata; /* This is used for polling API specific data */
     aeBeforeSleepProc *beforesleep;

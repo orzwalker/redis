@@ -49,6 +49,9 @@
 
 /* Include the best multiplexing layer supported by this system.
  * The following should be ordered by performances, descending. */
+/**
+ * IO复用选择，性能依次下降
+ */
 #ifdef HAVE_EVPORT
 #include "ae_evport.c"
 #else
@@ -64,6 +67,10 @@
 #endif
 
 
+/**
+ * redis.server初始化时调用
+ 
+ */
 aeEventLoop *aeCreateEventLoop(int setsize) {
     aeEventLoop *eventLoop;
     int i;
