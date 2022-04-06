@@ -914,21 +914,31 @@ struct sharedObjectsStruct {
 typedef struct zskiplistNode {
     sds ele;
     double score;
+    // 后退指针
     struct zskiplistNode *backward;
+    // level数组，存前进指针的一些数据，一层一层
     struct zskiplistLevel {
         struct zskiplistNode *forward;
+        // 跨度，表示节点之间的距离
         unsigned long span;
     } level[];
 } zskiplistNode;
 
 typedef struct zskiplist {
+    // 头尾指针（尾指针指向最后一个节点元素，头指针指向虚节点）
     struct zskiplistNode *header, *tail;
+    // 总节点数，不包含头节点
     unsigned long length;
+    // 节点level层数最高的节点，不包含header头结点
     int level;
 } zskiplist;
 
+// 涉及到一个问题，有序集合为什么使用字典+跳表的组合呢？
+// 提高查询效率----让score和range查询都尽可能快
 typedef struct zset {
+    // 字典，存放node-score的映射关系，获取score的时间复杂度是O(1)
     dict *dict;
+    // 跳表，范围查询的时间复杂度得到降低 log(N)
     zskiplist *zsl;
 } zset;
 

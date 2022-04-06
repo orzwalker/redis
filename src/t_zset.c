@@ -68,6 +68,7 @@ int zslLexValueLteMax(sds value, zlexrangespec *spec);
 
 /* Create a skiplist node with the specified number of levels.
  * The SDS string 'ele' is referenced by the node after the call. */
+// level: 数组的大小，有多少层
 zskiplistNode *zslCreateNode(int level, double score, sds ele) {
     zskiplistNode *zn =
         zmalloc(sizeof(*zn)+level*sizeof(struct zskiplistLevel));
@@ -82,10 +83,16 @@ zskiplist *zslCreate(void) {
     zskiplist *zsl;
 
     zsl = zmalloc(sizeof(*zsl));
+    // level为什么是1 ？？
     zsl->level = 1;
+    // 节点数量为0（不包含头节点）
     zsl->length = 0;
+    // max_level = 32
+    // 新建跳表时，创建头节点
     zsl->header = zslCreateNode(ZSKIPLIST_MAXLEVEL,0,NULL);
+    // level数组每个元素初始化
     for (j = 0; j < ZSKIPLIST_MAXLEVEL; j++) {
+        // 只有头节点，所以前进指针为NULL，跨度为0
         zsl->header->level[j].forward = NULL;
         zsl->header->level[j].span = 0;
     }
@@ -97,6 +104,7 @@ zskiplist *zslCreate(void) {
 /* Free the specified skiplist node. The referenced SDS string representation
  * of the element is freed too, unless node->ele is set to NULL before calling
  * this function. */
+// 释放某个节点
 void zslFreeNode(zskiplistNode *node) {
     sdsfree(node->ele);
     zfree(node);
@@ -121,6 +129,7 @@ void zslFree(zskiplist *zsl) {
  * levels are less likely to be returned. */
 int zslRandomLevel(void) {
     int level = 1;
+    // p=1/4
     while ((random()&0xFFFF) < (ZSKIPLIST_P * 0xFFFF))
         level += 1;
     return (level<ZSKIPLIST_MAXLEVEL) ? level : ZSKIPLIST_MAXLEVEL;
@@ -135,15 +144,23 @@ zskiplistNode *zslInsert(zskiplist *zsl, double score, sds ele) {
     int i, level;
 
     serverAssert(!isnan(score));
+    // 头节点
     x = zsl->header;
+    // 创建header节点时level=1
     for (i = zsl->level-1; i >= 0; i--) {
         /* store rank that is crossed to reach the insert position */
         rank[i] = i == (zsl->level-1) ? 0 : rank[i+1];
+        // 下一个节点不为空
         while (x->level[i].forward &&
+                // score小于下个节点的score 
                 (x->level[i].forward->score < score ||
+                    // score相等
                     (x->level[i].forward->score == score &&
+                    // 小于0，说明下个节点的ele小于要插入的ele
                     sdscmp(x->level[i].forward->ele,ele) < 0)))
         {
+            // 继续前进遍历同一层的下个节点
+            // 增加rank
             rank[i] += x->level[i].span;
             x = x->level[i].forward;
         }
